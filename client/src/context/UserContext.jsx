@@ -49,32 +49,6 @@ export const UserProvider = ({ children }) => {
             });
         }
     }
-
-    // const handleDeleteComment = async (postId, commentId) => {
-    //     try {
-    //       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/post/comment/${postId}/${commentId}`,{},
-    //         {
-    //           headers: {
-    //             Authorization: `Bearer ${token}`,
-    //           },
-    //         }
-    //       );
-    
-    //       if (response.status === 200) {
-    //         toast({
-    //           title: response.data.message,
-    //         });
-            
-    //         await fetchAllPost();
-    //       }
-    //     } catch (error) {
-    //       toast({
-    //         title: "Error deleting comment",
-    //         description: error.response?.data?.message || error.message,
-    //         status: "error",
-    //       });
-    //     }
-    //   };
     
     useEffect(() => {
         getUserProfile()

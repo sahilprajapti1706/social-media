@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, User } from 'lucide-react';
 import axios from "axios"
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const SignUp = () => {
@@ -119,12 +119,12 @@ const SignUp = () => {
             </button>
 
             <div className="text-center mt-4">
-              <button
-                type="submit"
+              <Link
+                to={"/sign-in"}
                 className="text-sm text-gray-600 hover:text-gray-800"
               >
                  <p>Already have an account? <span className='text-blue-700'>Sign in</span> </p>
-              </button>
+              </Link>
             </div>
           </form>
         </CardContent>

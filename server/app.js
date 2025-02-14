@@ -22,8 +22,8 @@ app.use(cors())
 app.use("/user", userRoutes);
 app.use("/post", postRoute);
 
-app.get("/",(req, res) => {
-    res.send("App working")
+app.get('/',(req,res)=>{
+    res.send("API Working");
 })
 
 app.listen( PORT , () => {
