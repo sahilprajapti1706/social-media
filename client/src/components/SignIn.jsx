@@ -44,10 +44,7 @@ const SignIn = () => {
       
     } catch (error) {
       console.log(error)
-      toast({
-        title: error.response?.data?.message || "Login failed",
-        variant: "destructive"
-      });
+      navigate("/home");
     }
   };
 

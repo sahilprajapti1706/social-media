@@ -16,6 +16,7 @@ import MyCommentPost from './components/pages/MyCommentPost'
 import Friends from './components/pages/Friend'
 import ForgotPassword from './components/pages/ForgetPassword'
 import ResetPassword from './components/pages/ResetPassword'
+import GetStarted from './components/pages/GetStarted'
 
 const App = () => {
   return (
@@ -23,6 +24,8 @@ const App = () => {
      
           <Navbar/>
           <Routes>
+                
+                <Route path='/' element={<GetStarted/>} />
                 <Route path='/sign-up' element={<SignUp/>} />
                 <Route path='/sign-in' element={<SignIn/>} />
                 <Route path="/home" element={<HomePage/>} />
