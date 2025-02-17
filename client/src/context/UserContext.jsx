@@ -8,72 +8,71 @@ export const UserProvider = ({ children }) => {
     const [userData, setUserData] = useState(null);
     const [profile, setProfile] = useState(null);
     const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const token = localStorage.getItem("token");
 
-    const token = localStorage.getItem("token")
+    const getUserProfile = async () => {
+        // if (!token || userData) return; // Prevent unnecessary fetch
+        if (!token) return;
 
-
-    const getUserProfile = async() => {
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/my-profile`,{
-            headers :{
-                Authorization : `Bearer ${token}`
-            }
-        })
-        if(response.status === 200){
-            setUserData(response.data)
-        }else{
-            toast({
-                title : "User Not Found",
-                variant : "destructive"
-            })
-        }
-    }
-    
-    const fetchAllPost = async() => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/post`);
+            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/my-profile`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             if(response.status === 200){
-                
-                setPosts(response.data);
-                console.log(posts)
-            } else {
-                toast({
-                    title: "Failed to fetch posts",
-                    variant: "destructive"
-                });
+                console.log("Fetched User Data:", response.data); // Debugging
+                setUserData(response.data);
+                setProfile(response.data.user);
             }
         } catch (error) {
             toast({
-                title: "An error occurred",
-                description: error.message,
+                title: "Error fetching user",
+                description: error.response?.data?.message || "User Not Found",
+                variant: "destructive"
+            });
+            setUserData(null);
+            setProfile(null);
+        }
+    };
+
+    const fetchAllPost = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/post`);
+            setPosts(response.data);
+        } catch (error) {
+            toast({
+                title: "Error fetching posts",
+                description: error.response?.data?.message || "Failed to fetch posts",
                 variant: "destructive"
             });
         }
-    }
-    
+    };
+
     useEffect(() => {
-        getUserProfile()
-        fetchAllPost()
-    },[token])
+        if (token && !userData) {
+            setLoading(true);
+            Promise.all([getUserProfile(), fetchAllPost()]).finally(() => setLoading(false));
+        }
+    }, [token]);  // Removed `profile` to prevent unnecessary calls
 
-
-    // For profile update
     useEffect(() => {
         if (userData) {
-          setProfile(userData.user);
+            setProfile(userData.user);
         }
-      }, [userData]);
-
-
-    //   Post
-    useEffect(()=> {
-        // console.log(posts)
-    },[posts])
-
-
-    
+    }, [userData]);
 
     return (
-        <UserContext.Provider value={{token, userData, setUserData, profile,setProfile, posts, fetchAllPost }}>
+        <UserContext.Provider value={{ 
+            token, 
+            userData, 
+            setUserData, 
+            profile, 
+            setProfile, 
+            posts, 
+            getUserProfile,
+            fetchAllPost, 
+            loading
+        }}>
             {children}
         </UserContext.Provider>
     );

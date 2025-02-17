@@ -6,113 +6,102 @@ import { Input } from "@/components/ui/input";
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { UserContext } from '@/context/UserContext';
-import { useParams } from 'react-router-dom';
 
 const EditPost = () => {
+  const { id } = useParams();
+  const [content, setContent] = useState('');
+  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState([]);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { fetchAllPost } = useContext(UserContext);
 
-    const { id } = useParams();
-    
-    const [content, setContent] = useState('');
-    const [tagInput, setTagInput] = useState('');
-    const [tags, setTags] = useState([]);
-    const { toast } = useToast();
-    const navigate = useNavigate()
-    
-    const {fetchAllPost} = useContext(UserContext)
-
+  // Handle tag input
   const handleTagInput = (e) => {
-    const value = e.target.value;
-    setTagInput(value.replace(/\s/g, ''));
+    setTagInput(e.target.value.replace(/\s/g, ''));
   };
 
+  // Add a tag
   const addTag = (e) => {
     e.preventDefault();
-    if (tagInput.trim() && !tags.includes(tagInput)) {
+    const trimmedTag = tagInput.trim();
+    if (trimmedTag && !tags.includes(trimmedTag)) {
       if (tags.length >= 5) {
-        toast({
-          title: "Maximum 5 tags allowed",
-          variant: "destructive",
-        });
+        toast({ title: "Maximum 5 tags allowed", variant: "destructive" });
         return;
       }
-      setTags([...tags, tagInput]);
+      setTags([...tags, trimmedTag]);
       setTagInput('');
     }
   };
 
+  // Remove a tag
   const removeTag = (tagToRemove) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-
+  // Fetch post data on component mount
   useEffect(() => {
-    const getPost = async() => {
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/post/get-post/${id}`,{
-                headers : {
-                    Authorization : `Bearer ${localStorage.getItem("token")}`
-                }
-            })
-        
-            if(response.status === 200){
-                setContent(response.data.post.content)
-                setTags(response.data.post.tags)
-            }
-        } catch (error) {
-            toast({
-                title:"Error in loading content",
-                description : ""
-            })
+    const getPost = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/post/get-post/${id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+
+        if (response.status === 200) {
+          setContent(response.data.post.content);
+          setTags(response.data.post.tags);
         }
+      } catch (error) {
+        toast({
+          title: "Error loading post",
+          description: error.response?.data?.message || "Something went wrong",
+          variant: "destructive",
+        });
       }
+    };
 
-      getPost();
-  }, [])
+    getPost();
+  }, [id]);
 
-  
-
+  // Update post
   const updatePost = async (e) => {
     e.preventDefault();
     try {
-        const response = await axios.put(`${import.meta.env.VITE_BASE_URL}/post/update/${id}`,{content, tags}, {
-            headers :{
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            }
-        })
-    
-        if(response.status === 200){
-            toast({
-                title : "Post Updated Successfully"
-            })
-            await fetchAllPost()
-            navigate("/home")
-        }
+      const response = await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/post/update/${id}`,
+        { content, tags },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+
+      if (response.status === 200) {
+        toast({ title: "Post updated successfully" });
+        await fetchAllPost();
+        navigate("/home");
+      }
     } catch (error) {
-        console.log(error)
-        toast({
-            title : "Cannot Update the Post",
-            variant : "destructive"
-        })
+      toast({
+        title: "Cannot update the post",
+        description: error.response?.data?.message || "Something went wrong",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-6 lg:p-8">
       <div className="max-w-3xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Create New Post</CardTitle>
+            <CardTitle className="text-2xl font-bold">Edit Post</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={updatePost} className="space-y-6">
-             
-             
+              {/* Content Input */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Content
-                </label>
+                <label className="text-sm font-medium">Content</label>
                 <Textarea
                   placeholder="What's on your mind?"
                   value={content}
@@ -121,21 +110,14 @@ const EditPost = () => {
                 />
               </div>
 
-              
+              {/* Tags Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Tags</label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {tags.map((tag, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full"
-                    >
+                    <div key={index} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
                       <span>#{tag}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tag)}
-                        className="hover:text-blue-900"
-                      >
+                      <button type="button" onClick={() => removeTag(tag)} className="hover:text-blue-900">
                         <X size={14} />
                       </button>
                     </div>
@@ -154,27 +136,16 @@ const EditPost = () => {
                     }}
                     className="flex-1"
                   />
-                  <Button 
-                    type="button"
-                    onClick={addTag}
-                    variant="outline"
-                  >
+                  <Button type="button" onClick={addTag} variant="outline">
                     Add Tag
                   </Button>
                 </div>
-                <p className="text-sm text-gray-500">
-                  Press Enter or click Add Tag to add a tag. Maximum 5 tags allowed.
-                </p>
+                <p className="text-sm text-gray-500">Press Enter or click Add Tag to add a tag. Maximum 5 tags allowed.</p>
               </div>
 
               {/* Submit Button */}
               <div className="pt-4">
-                <Button 
-                  type="submit"
-                  className="w-full"
-                >
-                 Update 
-                </Button>
+                <Button type="submit" className="w-full">Update</Button>
               </div>
             </form>
           </CardContent>

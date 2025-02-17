@@ -6,73 +6,62 @@ import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { UserContext } from '@/context/UserContext';
 
-
 const SignIn = () => {
-
-
-    const {user , setUser} = useContext(UserContext);
-
-    const [formData, setFormData] = useState({
-      username: '',
-      password: '',
-    });
-
-      const navigate = useNavigate();
-      const { toast } = useToast();
+  const { setUserData, setProfile } = useContext(UserContext); // Corrected userData handling
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/login`, formData);
-      
-      if (response.status === 200) {
-        console.log(response.data)
-        localStorage.setItem("token", response.data.token);
-        setUser(response.data.user)
-        toast({
-          title: response.data.message,
-          variant: "success"
-        });
-        navigate("/home");
 
-        setFormData({
-          username: '',
-          password: ''
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token);
+        setUserData(response.data.user); // Corrected user update
+        setProfile(response.data.user); // Corrected user update
+
+
+  console.log("UserData after login:", response.data.user); // Debugging
+  console.log("Profile after login:", response.data.user); // Debugging
+
+
+        toast({
+          title: response.data.message || "Login successful!",
+          variant: "default",
         });
+
+        setFormData({ username: '', password: '' });
+        navigate("/home");
       }
-      
     } catch (error) {
-      console.log(error)
-      navigate("/home");
+      toast({
+        title: "Login Failed",
+        description: error.response?.data?.message || "Invalid credentials. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSignUp = () => {
-    navigate("/sign-up");
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
-    <div className="min-h-auto bg-gray-100 flex items-center justify-center p-16">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            Welcome Back 
-          </CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Username Input */}
             <div className="relative">
               <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <input
@@ -86,6 +75,7 @@ const SignIn = () => {
               />
             </div>
 
+            {/* Password Input */}
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <input
@@ -99,6 +89,7 @@ const SignIn = () => {
               />
             </div>
 
+            {/* Forgot Password */}
             <div className="text-right">
               <button 
                 type="button" 
@@ -109,6 +100,7 @@ const SignIn = () => {
               </button>
             </div>
 
+            {/* Sign In Button */}
             <button
               type="submit"
               className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -116,13 +108,16 @@ const SignIn = () => {
               Sign In
             </button>
 
+            {/* Sign Up Redirect */}
             <div className="text-center mt-4">
-              <p
-                className="text-sm text-gray-600 hover:text-gray-800"
-              >
-                <p>Don't have an account? <Link to={"/sign-up"} className="text-blue-700">Sign up</Link></p>
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <Link to="/sign-up" className="text-blue-700 font-medium">
+                  Sign up
+                </Link>
               </p>
             </div>
+
           </form>
         </CardContent>
       </Card>

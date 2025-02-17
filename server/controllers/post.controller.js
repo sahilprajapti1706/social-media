@@ -1,209 +1,162 @@
-const postModel = require("../models/post.model")
+const postModel = require("../models/post.model");
 
 
-
-module.exports.createPost = async (req, res, next) => {
-    
+module.exports.createPost = async(req, res) => {
     try {
-        const {content, tags} = req.body
+      const { content, tags } = req.body;
+      if (!content) return res.status(400).json({ message: "Content is required." });
 
-        if(!content){
-            return res.status(400).json({ message: 'Content is required.' });
-        }
-        const newPost = new postModel({
-            author : req.user._id,
-            content ,
-            tags,
-        })
-
-        await newPost.save();
-        return res.status(200).json({ message: "Post created successfully" });
-        
+      const newPost = await postModel.create({
+        author: req.user._id,
+        content,
+        tags,
+      });
+      res.status(201).json({ message: "Post created successfully", newPost });
     } catch (error) {
-        return res.status(500).json({ message: "Error in posting", error });
-
+      console.error("Error creating post:", error);
+      res.status(500).json({ message: "Error creating post", error: error.message });
     }
-}
+  }
 
-module.exports.getPost = async (req,res, next) => {
+  
+module.exports.getPost = async (req, res) => {
     try {
-        const id = req.params.id;
-        const post = await postModel.findById(id);
-
-        if (!post) {
-            return res.status(404).json({ message: "Post not found" });
-        }
-        res.status(200).json({post})
+      const post = await postModel.findById(req.params.id);
+      if (!post) return res.status(404).json({ message: "Post not found" });
+      res.status(200).json({ post });
     } catch (error) {
-        return res.status(500).json({ message: "Error in fetching data", error });
-
+      console.error("Error fetching post:", error);
+      res.status(500).json({ message: "Error fetching post", error: error.message });
     }
+  }
 
-
-}
-
-module.exports.feed = async (req, res, next) =>{
+module.exports.feed = async(req, res)=>{
     try {
-        const posts = await postModel.find()
-                    .populate("author", "username")
-                    .populate("comments.author","username")
-                    .sort({ createdAt: -1 });
-
-        return res.status(200).json(posts)
+      const posts = await postModel.find()
+        .populate("author", "username profileImage")
+        .populate("comments.author","profileImage username")
+        .sort({ createdAt: -1 });
+      res.status(200).json(posts);
     } catch (error) {
-        return res.status(500).json({ message: "Error in fetching data", error });
+      console.error("Error fetching posts:", error);
+      res.status(500).json({ message: "Error fetching posts", error: error.message });
     }
-}
+  }
 
-module.exports.updatePost = async (req, res, next) => {
+  module.exports.updatePost = async(req, res)=>{
+    try {
+      const { content, tags } = req.body;
+      const updatedPost = await postModel.findByIdAndUpdate(
+        req.params.id,
+        { 
+          ...(content && { content }), 
+          ...(tags && { tags }), 
+          updatedAt: Date.now() 
+        },
+        { new: true }
+      );
+      if (!updatedPost) return res.status(404).json({ message: "Post not found." });
+      res.status(200).json(updatedPost);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      res.status(500).json({ message: "Error updating post", error: error.message });
+    }
+  }
+
+module.exports.deletePost = async(req, res)=>{
 
     try {
-        const { content, tags } = req.body;
-        const postId = req.params.id;
-
-    const updatedPost = await postModel.findByIdAndUpdate(postId, {
-        ...(content && {content}),
-        ...(tags && {tags}),
-        updatedAt: Date.now() 
-    }, {new : true})
-
-    if (!updatedPost) {
-        return res.status(404).json({ message: 'Post not found.' });
-    }
-
-    return res.status(200).json(updatedPost);
+      
+      const deletedPost = await postModel.findByIdAndDelete(req.params.id);
+      if (!deletedPost) return res.status(404).json({ message: "Post not found." });
+      res.status(200).json({ message: "Post deleted successfully" });
     } catch (error) {
-        console.error('Error updating post:', error);
-        return res.status(500).json({ message: 'Error while updating post.' });
+      console.error("Error deleting post:", error);
+      res.status(500).json({ message: "Error deleting post", error: error.message });
     }
+  }
 
-}
 
-module.exports.deletePost = async (req, res, next) => {
+module.exports.likePost = async(req, res)=>{
+
     try {
-        const deletedPost = await postModel.findByIdAndDelete(req.params.id)
-
-        if (!deletedPost) {
-            return res.status(404).json({ message: 'Post not found.' });
-        }
-
-        return res.status(201).json({message : "Post deleted successfully"})
-        
+      const post = await postModel.findById(req.params.id);
+      if (!post) return res.status(404).json({ message: "Post not found" });
+      
+      const userIdStr = req.user._id.toString();
+      post.likes.includes(userIdStr)
+        ? (post.likes = post.likes.filter(id => id.toString() !== userIdStr))
+        : post.likes.push(userIdStr);
+      
+      await post.save();
+      res.status(200).json({ message: "Like status updated", likes: post.likes.length, post });
     } catch (error) {
-        return res.status(500).json({ message: 'Error in deleting post.'});
+      console.error("Error liking post:", error);
+      res.status(500).json({ message: "Error liking post", error: error.message });
     }
-}
+  }
 
-module.exports.likePost = async (req, res, next) => {
+  module.exports.addComment = async(req, res)=>{
+
     try {
-        const userId = req.user._id;
-        const postId = req.params.id;
-
-        const post = await postModel.findById(postId);
-        if (!post) {
-            return res.status(404).json({ message: "Post not found" });
-        }
-
-        if (!post.likes.includes(userId)) {
-            post.likes.push(userId);
-        } else {
-            post.likes = post.likes.filter((id) => id.toString() !== userId.toString());
-        }
-       
-        await post.save();
-
-        return res.status(200).json({
-            message: "Post like status updated",
-            likes: post.likes.length,
-            post
-        });
-
+      const post = await postModel.findById(req.params.id);
+      if (!post) return res.status(404).json({ message: "Post not found." });
+      
+      post.comments.push({ author: req.user._id, content: req.body.newComment });
+      await post.save();
+      res.status(200).json({ message: "Comment added successfully", post });
     } catch (error) {
-        console.error("Error in liking post:", error);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+      console.error("Error adding comment:", error);
+      res.status(500).json({ message: "Error adding comment", error: error.message });
     }
-};
+  }
 
-module.exports.addComment = async (req, res, next) => {
+  module.exports.deleteComment = async(req, res)=>{
+
     try {
-        const { newComment } = req.body;
-        const post = await postModel.findById(req.params.id);
+      const post = await postModel.findById(req.params.postId);
+      if (!post) return res.status(404).json({ message: "Post not found." });
+      
+      const commentIdx = post.comments.findIndex(comment => comment._id.toString() === req.params.cmtId.toString());
 
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found.' });
-        }
+      if (commentIdx === -1) return res.status(404).json({ message: "Comment not found." });
+      
+      const isAuthor = post.comments[commentIdx].author.toString() === req.user._id.toString();
 
-        post.comments.push({
-            author: req.user._id,
-            content: newComment
-        });
+      const isPostOwner = post.author.toString() === req.user._id.toString();
 
-        await post.save();
-
-        return res.status(200).json({ message: 'Comment added successfully', post });
-
+      if (!isAuthor && !isPostOwner) return res.status(403).json({ message: "Unauthorized." });
+      
+      post.comments.splice(commentIdx, 1); 
+      await post.save();
+      res.status(200).json({ message: "Comment deleted successfully", post });
     } catch (error) {
-        console.error('Error adding comment:', error);
-        return res.status(500).json({ message: 'Error while adding comment.', error: error.message });
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ message: "Error deleting comment", error: error.message });
     }
-}
+  }
 
-module.exports.deleteComment = async (req, res, next) => {
+
+module.exports.userLikedPosts = async(req, res)=>{
+
     try {
-        const postId = req.params.postId;
-        const commentId = req.params.cmtId;
-
-        const post = await postModel.findById(postId);
-
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found.' });
-        }
-
-        const commentIdx = post.comments.findIndex((comment) => comment._id.toString() === commentId)
-
-        if (commentIdx === -1) {
-            return res.status(404).json({ message: 'Comment not found.' });
-        }
-
-        
-        if(post.comments[commentIdx].author.toString() !== req.user._id.toString() && 
-            post.author.toString() !== req.user._id.toString()){
-
-            return res.status(403).json({ message: 'Unauthorized to delete this comment.' });
-        }
-
-        post.comments.splice(commentIdx, 1);
-        await post.save();
-        res.status(200).json({ message: 'Comment deleted successfully.', post });
-
+      const likedPosts = await postModel.find({ likes: req.user._id }).populate("author","profileImage username");
+      res.status(200).json({ message: "Liked posts fetched successfully.", likedPosts });
     } catch (error) {
-        console.error('Error deleting comment:', error);
-        res.status(500).json({ message: 'Server error.' });
+      console.error("Error fetching liked posts:", error);
+      res.status(500).json({ message: "Error fetching liked posts", error: error.message });
     }
+  }
 
+module.exports.userCommentPost = async(req, res)=>{
 
-}
-
-module.exports.userLikedPost = async (req, res, next) => {
     try {
-        const likedPost = await postModel.find({likes : req.user._id}).populate("author","username")
-        return res.status(200).json({ message: 'Liked Post fetched successfully.', likedPost });
-
+      const commentedPosts = await postModel.find({ "comments.author": req.user._id })
+        .populate("author", "profileImage username")
+        .populate("comments.author", "username");
+      res.status(200).json({ message: "Commented posts fetched successfully.", commentedPosts });
     } catch (error) {
-        console.error('Error in fetching liked post:', error);
-        res.status(500).json({ message: 'Server error.' });
+      console.error("Error fetching commented posts:", error);
+      res.status(500).json({ message: "Error fetching commented posts", error: error.message });
     }
-}
-
-module.exports.userCommentPost = async (req, res, next) => {
-    try {
-        const commentedPosts = await postModel.find({
-            comments: { $elemMatch: { author: req.user._id } } 
-        }).populate("author","username").populate("comments.author", "username");
-        return res.status(200).json({ message: 'Commented Post fetched successfully.', commentedPosts });
-        
-    } catch (error) {
-        console.error('Error in fetching commented post:', error);
-        res.status(500).json({ message: 'Server error.' });
-    }
-}
+  }

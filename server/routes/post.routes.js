@@ -22,7 +22,7 @@ router.post("/comment/:id", authMiddleware.authUser, postController.addComment)
 
 router.post("/comment/:postId/:cmtId", authMiddleware.authUser, postController.deleteComment)
 
-router.get("/liked-posts", authMiddleware.authUser, postController.userLikedPost);
+router.get("/liked-posts", authMiddleware.authUser, postController.userLikedPosts);
 
 router.get("/commented-posts", authMiddleware.authUser, postController.userCommentPost);
 

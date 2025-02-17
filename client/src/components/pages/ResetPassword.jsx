@@ -4,6 +4,8 @@ import { Lock } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import { useSearchParams } from "react-router-dom";
+
 
 const ResetPassword = () => {
   const [formData, setFormData] = useState({
@@ -11,9 +13,11 @@ const ResetPassword = () => {
     confirmPassword: ''
   });
 
-  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+    const token = searchParams.get("token");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,16 +30,17 @@ const ResetPassword = () => {
       return;
     }
 
+    setLoading(true);
+    
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/reset-password/${token}`, {
-        password: formData.newPassword
-      });
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/reset-password`,
+        {token, newPassword: formData.newPassword },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      console.log(response)
       
       if (response.status === 200) {
-        toast({
-          title: "Password reset successful!",
-          variant: "success"
-        });
+        toast({ title: "Password reset successful!", variant: "default" });
         navigate("/sign-in");
       }
     } catch (error) {
@@ -43,27 +48,22 @@ const ResetPassword = () => {
         title: error.response?.data?.message || "Password reset failed",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
-    <div className="min-h-auto bg-gray-100 flex items-center justify-center p-16">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            Reset Password
-          </CardTitle>
-          <CardDescription className="text-center">
-            Enter your new password below
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">Reset Password</CardTitle>
+          <CardDescription className="text-center">Enter your new password below</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,9 +95,12 @@ const ResetPassword = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className={`w-full bg-blue-600 text-white py-2 rounded-lg transition-colors ${
+                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+              }`}
+              disabled={loading}
             >
-              Reset Password
+              {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
         </CardContent>

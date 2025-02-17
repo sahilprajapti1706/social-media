@@ -57,33 +57,8 @@ const postSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
-  //  {
-  //   timestamps: true,
-  // }
 })
 
-
-
-
-postSchema.methods.unlike = function (userId) {
-  this.likes = this.likes.filter(id => id.toString() !== userId.toString());
-  return this.save();
-};
-
-postSchema.methods.addComment = function (userId, content) {
-  this.comments.push({
-    author: userId,
-    content: content
-  });
-  return this.save();
-};
-
-postSchema.methods.removeComment = function (commentId) {
-  this.comments = this.comments.filter(comment =>
-    comment._id.toString() !== commentId.toString()
-  );
-  return this.save();
-};
 
 const PostModel = mongoose.model('Post', postSchema);
 

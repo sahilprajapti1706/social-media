@@ -5,8 +5,9 @@ import axios from "axios";
 import UserDetails from "../UserDetails";
 
 const MyCommentPost = () => {
-  const { posts, profile } = useContext(UserContext);
+  const { profile } = useContext(UserContext);
   const [myCommentedPosts, setMyCommentedPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const getUserCommentedPost = async () => {
     try {
@@ -20,37 +21,40 @@ const MyCommentPost = () => {
       );
 
       if (response.status === 200) {
-        console.log(response.data.commentedPosts);
         setMyCommentedPosts(response.data.commentedPosts);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error fetching commented posts:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     getUserCommentedPost();
-  }, [profile, posts]);
-
-  console.log(myCommentedPosts);
+  }, []); // Removed unnecessary dependencies to prevent redundant API calls
 
   return (
-    <>
-      <div className="min-h-auto bg-gray-100">
-        <div className="container mx-auto px-4 py-4 pb-4">
-          <div className="flex flex-wrap justify-center">
-            {" "}
-            {/*-mx-4*/}
-            {profile && <UserDetails />}
-            <div className="w-full  lg:w-5/12 px-4 flex-1 max-w-3xl">
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-wrap justify-center gap-6">
+          {profile && <UserDetails />}
+          <div className="w-full lg:w-5/12 px-4 flex-1 max-w-3xl">
+            {loading ? (
+              <p className="text-center text-gray-500">Loading posts...</p>
+            ) : myCommentedPosts.length > 0 ? (
               <div className="space-y-4">
                 {myCommentedPosts.map((post, idx) => (
-                  <PostCard key={idx} post={post} />
+                  <PostCard key={post._id || idx} post={post} />
                 ))}
               </div>
-            </div>
+            ) : (
+              <p className="text-center text-gray-500">No commented posts found.</p>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -2,12 +2,13 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user.controller")
 const authMiddleware = require("../middleware/auth.middleware")
+const upload = require("../config/multer");
 
-router.post("/register",userController.registerUser)
+router.post("/register",upload.single("profileImage"),userController.registerUser)
 
 router.post("/login",userController.loginUser)
 
-router.post("/forgot-password",userController.forgetPassword);
+router.post("/forgot-password",userController.forgotPassword);
 
 router.post("/reset-password",userController.resetPassword);
 

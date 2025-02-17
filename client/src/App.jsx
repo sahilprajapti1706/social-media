@@ -1,9 +1,9 @@
 import React from 'react'
 import Navbar from './components/Navbar'
-import SignUp from './components/SignUp'
-import HomePage from './components/HomePage'
+import SignUp from './components/pages/SignUp'
+import HomePage from './components/pages/HomePage'
 import { Routes, Route } from 'react-router-dom'
-import SignIn from './components/SignIn'
+import SignIn from './components/pages/SignIn'
 import { Toaster } from "@/components/ui/toaster"
 import { UserProvider } from './context/UserContext'
 import CreatePost from './components/pages/CreatePost'

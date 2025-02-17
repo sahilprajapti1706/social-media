@@ -1,76 +1,121 @@
-import React, { useContext } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Users, Heart, MessageCircle, Share2, ThumbsUp, SquarePen, BookOpen } from 'lucide-react';
-import { Avatar } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { UserContext } from '@/context/UserContext';
-import { Link } from 'react-router-dom';
+import React, { useContext } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { UserContext } from "@/context/UserContext";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  User,
+  Users,
+  BookOpen,
+  SquarePen,
+  ThumbsUp,
+  MessageCircle,
+  LogOut,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { toast } from "@/hooks/use-toast";
 
 const UserDetailsMobile = () => {
-    const { userData, profile } = useContext(UserContext);
+  const { userData, profile , setUserData} = useContext(UserContext);
+  const navigate = useNavigate();
 
-    return (
-        <div className="w-full px-4 block lg:hidden z-[99]">
-            <Card className="sticky top-[90px]">
-                <CardHeader>
-                    <div className="flex flex-col items-center space-x-4 mb-4">
-                        <Avatar className="h-20 w-20 mb-4">
-                            <img src="./author3.png" alt="Profile" className="rounded-full" />
-                        </Avatar>
-                        <div>
-                            <CardTitle>@{profile.username}</CardTitle>
-                        </div>
-                    </div>
+  const handleSignOut = () => {
+    localStorage.removeItem("token");
+    setUserData(null); 
+    toast({
+      title : "Sign Out",
+    })
+    navigate("/");
+  };
 
-                    <div className='flex justify-around mx-3'>
-                        <CardTitle className="flex flex-col justify-center items-center">
-                            <h2 className='text-gray-600 text-base'>Follower</h2>
-                            <h2>{profile.followers.length}</h2>
-                        </CardTitle>
-                        <Separator orientation="vertical" className="h-10 mx-3 bg-gray-500" />
-                        <CardTitle className="flex flex-col justify-center items-center">
-                            <h2 className='text-gray-600 text-base'>Following</h2>
-                            <h2>{profile.following.length}</h2>
-                        </CardTitle>
-                    </div>
-                </CardHeader>
-                <Separator className="w-[70%] mx-auto mb-3" />
-                <CardContent>
-                    <div className="space-y-2">
-                        <Link to={"/profile"} className="flex items-center space-x-3">
-                            <User size={25} />
-                            <span>My Profile</span>
-                        </Link>
-                        <Separator className="w-[80%] mx-auto mb-3" />
-                        <Link to={"/friends"} className="flex items-center space-x-3">
-                            <Users size={25} />
-                            <span>Friends</span>
-                        </Link>
-                        <Separator className="w-[80%] mx-auto mb-3" />
-                        <Link to={"/my-post"} className="flex items-center space-x-3">
-                            <BookOpen size={25} />
-                            <span>My Posts</span>
-                        </Link>
-                        <Separator className="w-[80%] mx-auto mb-3" />
-                        <Link to={"/create-post"} className="flex items-center space-x-3">
-                            <SquarePen size={25} />
-                            <span>Create Post</span>
-                        </Link>
-                        <Separator className="w-[80%] mx-auto mb-3" />
-                        <Link to={"/my-liked-posts"} className="flex items-center space-x-3">
-                            <ThumbsUp size={25} />
-                            <span>Liked Posts</span>
-                        </Link>
-                        <Separator className="w-[80%] mx-auto mb-3" />
-                        <Link to={"/my-comment-posts"} className="flex items-center space-x-3">
-                            <MessageCircle size={25} />
-                            <span>Comments</span>
-                        </Link>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    )
-}
 
-export default UserDetailsMobile
+  if (!profile) return null; // 🚀 Prevents rendering when profile is null
+
+  return (
+    <div className="w-full px-4 block lg:hidden z-[99]">
+      <Card className="sticky top-[90px]">
+        <CardHeader className="flex flex-col items-center">
+          {/* Profile Avatar */}
+          <Avatar className="h-20 w-20 mb-4">
+            <img
+              src={profile.profileImage || "./user.png"} // ✅ Uses user's profile image if available
+              alt={profile.username || "Profile"}
+              className="rounded-full"
+            />
+          </Avatar>
+
+          {/* Username */}
+          <CardTitle className="text-center">
+            @{profile.username || "User"}
+          </CardTitle>
+
+          {/* Follower & Following Count */}
+          <div className="flex justify-around w-full mt-3">
+            <div className="flex flex-col items-center">
+              <h2 className="text-gray-600 text-base">Follower</h2>
+              <h2>{profile.followers?.length || 0}</h2>
+            </div>
+            <Separator orientation="vertical" className="h-10 bg-gray-300" />
+            <div className="flex flex-col items-center">
+              <h2 className="text-gray-600 text-base">Following</h2>
+              <h2>{profile.following?.length || 0}</h2>
+            </div>
+          </div>
+        </CardHeader>
+
+        <Separator className="w-[70%] mx-auto mb-3" />
+
+        {/* Navigation Links */}
+        <CardContent>
+          <div className="space-y-2">
+            {[
+              { to: "/profile", icon: <User size={25} />, text: "My Profile" },
+              { to: "/friends", icon: <Users size={25} />, text: "Friends" },
+              {
+                to: "/my-post",
+                icon: <BookOpen size={25} />,
+                text: "My Posts",
+              },
+              {
+                to: "/create-post",
+                icon: <SquarePen size={25} />,
+                text: "Create Post",
+              },
+              {
+                to: "/my-liked-posts",
+                icon: <ThumbsUp size={25} />,
+                text: "Liked Posts",
+              },
+              {
+                to: "/my-comment-posts",
+                icon: <MessageCircle size={25} />,
+                text: "My Comments",
+              },
+            ].map(({ to, icon, text }, index) => (
+              <React.Fragment key={to}>
+                <Link
+                  to={to}
+                  className="flex items-center space-x-3 hover:text-blue-600 transition"
+                >
+                  {icon}
+                  <span>{text}</span>
+                </Link>
+                {index < 5 && <Separator className="w-[80%] mx-auto mb-3" />}
+              </React.Fragment>
+            ))}
+          </div>
+          <Button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-3 w-full text-left mt-3"
+                >
+                  <LogOut size={25} />
+                  <span>Sign Out</span>
+                </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default UserDetailsMobile;
