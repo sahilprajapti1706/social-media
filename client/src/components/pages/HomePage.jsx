@@ -7,7 +7,7 @@ import Loading from "../Loading";
 
 const HomePage = () => {
   const token = localStorage.getItem("token");
-  const { profile, getUserProfile, userData } = useContext(UserContext);
+  const { profile, getUserProfile, userData, fetchAllPost } = useContext(UserContext);
   const [loading, setLoading] = useState(true);
 
   // useEffect(() => {
@@ -27,6 +27,10 @@ const HomePage = () => {
       setLoading(false); // Stop loading if profile exists
     }
   }, [token]);  // Removed profile from dependencies
+
+  useEffect(()=> {
+    fetchAllPost();
+  },[])
 
   if (loading) {
     return (

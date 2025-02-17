@@ -1,9 +1,12 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import PostCard from "./PostCard";
 import { UserContext } from "@/context/UserContext";
 
 const Feed = () => {
-  const { posts } = useContext(UserContext);
+  const { posts, fetchAllPost, setPosts } = useContext(UserContext);
+  // useEffect(()=>{
+  //   fetchAllPost()
+  // },[])
 
   return (
     <div className="w-full lg:w-5/12 px-4 flex-1 max-w-3xl">
