@@ -4,9 +4,9 @@ import { UserContext } from "@/context/UserContext";
 
 const Feed = () => {
   const { posts, fetchAllPost, setPosts } = useContext(UserContext);
-  // useEffect(()=>{
-  //   fetchAllPost()
-  // },[])
+  useEffect(()=>{
+    fetchAllPost()
+  },[])
 
   return (
     <div className="w-full lg:w-5/12 px-4 flex-1 max-w-3xl">
