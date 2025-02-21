@@ -24,11 +24,6 @@ const SignIn = () => {
         setUserData(response.data.user); // Corrected user update
         setProfile(response.data.user); // Corrected user update
 
-
-  console.log("UserData after login:", response.data.user); // Debugging
-  console.log("Profile after login:", response.data.user); // Debugging
-
-
         toast({
           title: response.data.message || "Login successful!",
           variant: "default",

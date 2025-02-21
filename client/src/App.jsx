@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import Navbar from './components/Navbar'
 import SignUp from './components/pages/SignUp'
 import HomePage from './components/pages/HomePage'
 import { Routes, Route } from 'react-router-dom'
 import SignIn from './components/pages/SignIn'
 import { Toaster } from "@/components/ui/toaster"
-import { UserProvider } from './context/UserContext'
+import { UserContext, UserProvider } from './context/UserContext'
 import CreatePost from './components/pages/CreatePost'
 import Feed from './components/Feed'
 import MyProfile from './components/pages/MyProfile'
@@ -19,6 +19,9 @@ import ResetPassword from './components/pages/ResetPassword'
 import GetStarted from './components/pages/GetStarted'
 
 const App = () => {
+
+  const { profile } = useContext(UserContext)
+  
   return (
     <div>
      

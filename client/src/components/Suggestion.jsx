@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator"; // ✅ Fixed Separator Import
+import { Separator } from "@/components/ui/separator";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
+import { UserContext } from "@/context/UserContext";
 
 const Suggestion = () => {
+  const { profile } = useContext(UserContext);
   const [userSuggestion, setUserSuggestion] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [following, setFollowing] = useState({}); 
+  const [following, setFollowing] = useState({});
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -25,7 +27,11 @@ const Suggestion = () => {
         ]);
 
         if (usersRes.status === 200) {
-          setUserSuggestion(usersRes.data.users);
+          // 🔥 Filter out the current user from suggestions
+          const filteredUsers = usersRes.data.users.filter(
+            (user) => user.username !== profile?.username
+          );
+          setUserSuggestion(filteredUsers);
         }
 
         if (followingRes.status === 200) {
@@ -42,8 +48,10 @@ const Suggestion = () => {
       }
     };
 
-    fetchUsersAndFollowing();
-  }, [token]);
+    if (profile) {
+      fetchUsersAndFollowing();
+    }
+  }, [token, profile]);
 
   const handleConnection = async (id) => {
     try {
@@ -55,7 +63,7 @@ const Suggestion = () => {
 
       if (response.status === 200) {
         toast({ title: response.data.message });
-        setFollowing((prev) => ({ ...prev, [id]: true })); 
+        setFollowing((prev) => ({ ...prev, [id]: true }));
       }
     } catch (error) {
       console.error("Error connecting with user:", error);
@@ -78,7 +86,7 @@ const Suggestion = () => {
             <div className="space-y-3">
               {userSuggestion.map((suggestion, idx) => (
                 <div key={suggestion._id}>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between py-1">
                     {/* Avatar and Username */}
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
@@ -93,7 +101,7 @@ const Suggestion = () => {
 
                     {/* Follow Button */}
                     <Button
-                      className={`px-2 py-1 text-sm rounded-lg transition ${
+                      className={`px-2 py-0 text-sm rounded-lg transition ${
                         following[suggestion._id]
                           ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                           : "bg-blue-500 text-white hover:bg-blue-600"

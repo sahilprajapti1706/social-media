@@ -241,8 +241,8 @@ module.exports.connection = async (req, res) => {
 module.exports.friends = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id)
-      .populate("following", "username")
-      .populate("followers", "username");
+      .populate("following", "username profileImage")
+      .populate("followers", "username profileImage");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

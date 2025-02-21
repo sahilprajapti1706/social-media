@@ -153,7 +153,7 @@ module.exports.userCommentPost = async(req, res)=>{
     try {
       const commentedPosts = await postModel.find({ "comments.author": req.user._id })
         .populate("author", "profileImage username")
-        .populate("comments.author", "username");
+        .populate("comments.author", "username profileImage");
       res.status(200).json({ message: "Commented posts fetched successfully.", commentedPosts });
     } catch (error) {
       console.error("Error fetching commented posts:", error);

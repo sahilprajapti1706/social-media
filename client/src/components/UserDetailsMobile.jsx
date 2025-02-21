@@ -12,24 +12,40 @@ import {
   ThumbsUp,
   MessageCircle,
   LogOut,
+  Home,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "@/hooks/use-toast";
 
-const UserDetailsMobile = () => {
+const UserDetailsMobile = ({setOpen}) => {
   const { userData, profile , setUserData} = useContext(UserContext);
   const navigate = useNavigate();
 
-  const handleSignOut = () => {
-    localStorage.removeItem("token");
-    setUserData(null); 
-    toast({
-      title : "Sign Out",
-    })
-    navigate("/");
-  };
-
-
+  const options = [
+  { to: "/home", icon: <Home size={25} />, text: "Home" },
+  { to: "/profile", icon: <User size={25} />, text: "My Profile" },
+  { to: "/friends", icon: <Users size={25} />, text: "Friends" },
+  {
+    to: "/my-post",
+    icon: <BookOpen size={25} />,
+    text: "My Posts",
+  },
+  {
+    to: "/create-post",
+    icon: <SquarePen size={25} />,
+    text: "Create Post",
+  },
+  {
+    to: "/my-liked-posts",
+    icon: <ThumbsUp size={25} />,
+    text: "Liked Posts",
+  },
+  {
+    to: "/my-comment-posts",
+    icon: <MessageCircle size={25} />,
+    text: "My Comments",
+  }
+]
   if (!profile) return null; // 🚀 Prevents rendering when profile is null
 
   return (
@@ -37,7 +53,7 @@ const UserDetailsMobile = () => {
       <Card className="sticky top-[90px]">
         <CardHeader className="flex flex-col items-center">
           {/* Profile Avatar */}
-          <Avatar className="h-20 w-20 mb-4">
+          <Avatar className="h-16 w-16 mb-4">
             <img
               src={profile.profileImage || "./user.png"} // ✅ Uses user's profile image if available
               alt={profile.username || "Profile"}
@@ -69,49 +85,20 @@ const UserDetailsMobile = () => {
         {/* Navigation Links */}
         <CardContent>
           <div className="space-y-2">
-            {[
-              { to: "/profile", icon: <User size={25} />, text: "My Profile" },
-              { to: "/friends", icon: <Users size={25} />, text: "Friends" },
-              {
-                to: "/my-post",
-                icon: <BookOpen size={25} />,
-                text: "My Posts",
-              },
-              {
-                to: "/create-post",
-                icon: <SquarePen size={25} />,
-                text: "Create Post",
-              },
-              {
-                to: "/my-liked-posts",
-                icon: <ThumbsUp size={25} />,
-                text: "Liked Posts",
-              },
-              {
-                to: "/my-comment-posts",
-                icon: <MessageCircle size={25} />,
-                text: "My Comments",
-              },
-            ].map(({ to, icon, text }, index) => (
+            {options.map(({ to, icon, text }, index) => (
               <React.Fragment key={to}>
                 <Link
                   to={to}
+                  onClick={() => setOpen(false)}
                   className="flex items-center space-x-3 hover:text-blue-600 transition"
                 >
                   {icon}
                   <span>{text}</span>
                 </Link>
-                {index < 5 && <Separator className="w-[80%] mx-auto mb-3" />}
+                {index < 5 && <Separator className="w-[80%] mx-auto mb-2" />}
               </React.Fragment>
             ))}
           </div>
-          <Button
-                  onClick={handleSignOut}
-                  className="flex items-center space-x-3 w-full text-left mt-3"
-                >
-                  <LogOut size={25} />
-                  <span>Sign Out</span>
-                </Button>
         </CardContent>
       </Card>
     </div>

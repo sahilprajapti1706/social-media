@@ -13,18 +13,36 @@ export const UserProvider = ({ children }) => {
 
     const getUserProfile = async () => {
         // if (!token || userData) return; // Prevent unnecessary fetch
-        if (!token) return;
+        
 
         try {
+            if (!token) return;
             const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/my-profile`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            // console.log(response)
+
+           
+            
             if(response.status === 200){
-                console.log("Fetched User Data:", response.data); // Debugging
                 setUserData(response.data);
                 setProfile(response.data.user);
             }
+
         } catch (error) {
+            // console.log(error)
+
+            if(error.response.status === 401){
+                localStorage.removeItem("token");
+                toast({
+                    title: "Session Expired!",
+                    variant: "default"
+                });
+                setUserData(null);
+                setProfile(null);
+                window.location.href = "/";
+            }
+
             toast({
                 title: "Error fetching user",
                 description: error.response?.data?.message || "User Not Found",

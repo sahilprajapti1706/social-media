@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Users, ThumbsUp, SquarePen, BookOpen, LogOut, MessageCircle } from 'lucide-react';
+import { User, Users, ThumbsUp, SquarePen, BookOpen, LogOut, MessageCircle, HomeIcon } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { UserContext } from '@/context/UserContext';
@@ -12,14 +12,7 @@ const UserDetails = () => {
   const navigate = useNavigate();
   // console.log(userData)
 
-  const handleSignOut = () => {
-    localStorage.removeItem("token");
-    setUserData(null); 
-    toast({
-      title : "Sign Out",
-    })
-    navigate("/");
-  };
+  
 
   return (
     <div className="w-full lg:w-3/12 px-4 hidden lg:block">
@@ -54,6 +47,11 @@ const UserDetails = () => {
         <Separator className="w-[70%] mx-auto mb-3" />
         <CardContent>
           <div className="space-y-2">
+          <Link to="/home" className="flex items-center space-x-3">
+              <HomeIcon size={25} />
+              <span>Home</span>
+            </Link>
+            <Separator className="w-[80%] mx-auto mb-3" />
             <Link to="/profile" className="flex items-center space-x-3">
               <User size={25} />
               <span>My Profile</span>
@@ -89,11 +87,6 @@ const UserDetails = () => {
               <span>My Comments</span>
             </Link>
             <Separator className="w-[80%] mx-auto mb-3" />
-
-            <button onClick={handleSignOut} className="flex items-center space-x-3 w-full text-left">
-              <LogOut size={25} />
-              <span>Sign Out</span>
-            </button>
           </div>
         </CardContent>
       </Card>

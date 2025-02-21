@@ -20,12 +20,16 @@ const Friends = () => {
       if (response.status === 200) {
         setFollowing(response.data.following || []);
         setFollowers(response.data.followers || []);
+        
       }
+
     } catch (error) {
       setError("Failed to load friends data. Please try again later.");
     } finally {
       setLoading(false);
     }
+
+    
   };
 
   return (
@@ -39,10 +43,14 @@ const Friends = () => {
           {/* Following List */}
           <div className="w-full md:w-1/2 bg-white shadow-lg rounded-lg p-4">
             <h2 className="text-lg font-semibold mb-3">Following</h2>
+            
             <ul className="space-y-3">
               {following.length > 0 ? (
                 following.map((user) => (
                   <li key={user._id} className="flex items-center gap-3 border-b pb-2 hover:bg-gray-100 p-2 rounded-lg transition">
+                    {/* {
+                      console.log(user)
+                    } */}
                     <img
                       src={user.profileImage || "./user.png"}
                       alt={user.username}
