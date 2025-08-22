@@ -1,19 +1,23 @@
 services:
-  
   frontend:
     build: ./client
     ports:
       - "5173:5173"
     networks:
       - blog-network
-    
-    
+    env_file:
+      - ./client/.env   # 👈 load client env here
+    environment:
+      - VITE_BASE_URL=http://backend:3000  # 👈 override so client talks to backend container instead of localhost
+
   backend:
-    build : ./server
+    build: ./server
     ports:
-    - "3000:3000"
+      - "3000:3000"
     networks:
-     - blog-network
+      - blog-network
+    env_file:
+      - ./server/.env   # 👈 load server env here
 
 networks:
   blog-network:
