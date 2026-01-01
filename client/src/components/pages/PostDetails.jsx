@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "@/lib/axios";
 import { UserContext } from "@/context/UserContext";
 import PostCard from "../PostCard";
@@ -11,6 +11,7 @@ const PostDetails = () => {
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const { profile } = useContext(UserContext);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -53,7 +54,7 @@ const PostDetails = () => {
                 {/* Optional: Related posts or back button can go here */}
                 <div className="mt-8 flex justify-center pb-10">
                     <button
-                        onClick={() => window.history.back()}
+                       onClick={() => navigate("/home")}
                         className="px-6 py-2 bg-white border border-gray-200 text-gray-600 rounded-full font-semibold hover:bg-gray-50 transition-all shadow-sm"
                     >
                         Back to Feed
