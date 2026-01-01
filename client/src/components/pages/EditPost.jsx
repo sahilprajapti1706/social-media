@@ -5,9 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
+import api from '@/lib/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { UserContext } from '@/context/UserContext';
+import MainLayout from "../MainLayout";
 
 const EditPost = () => {
   const { id } = useParams();
@@ -46,9 +47,7 @@ const EditPost = () => {
   useEffect(() => {
     const getPost = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/post/get-post/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
+        const response = await api.get(`/post/get-post/${id}`);
 
         if (response.status === 200) {
           setContent(response.data.post.content);
@@ -70,10 +69,9 @@ const EditPost = () => {
   const updatePost = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/post/update/${id}`,
-        { content, tags },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      const response = await api.put(
+        `/post/update/${id}`,
+        { content, tags }
       );
 
       if (response.status === 200) {
@@ -91,41 +89,44 @@ const EditPost = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 md:p-6 lg:p-8">
-      <div className="max-w-3xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Edit Post</CardTitle>
+    <MainLayout>
+      <div className="max-w-3xl mx-auto transition-colors duration-300">
+        <Card className="bg-card text-card-foreground border-border shadow-md rounded-2xl overflow-hidden">
+          <CardHeader className="border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
+            <CardTitle className="text-2xl font-bold text-foreground">Edit Post</CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={updatePost} className="space-y-6">
+          <CardContent className="p-8">
+            <form onSubmit={updatePost} className="space-y-8">
               {/* Content Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Content</label>
+              <div className="space-y-3">
+                <label className="text-sm font-bold text-foreground/80 tracking-wide uppercase">Content</label>
                 <Textarea
                   placeholder="What's on your mind?"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[150px]"
+                  className="min-h-[200px] bg-muted border-border text-foreground placeholder:text-muted-foreground focus:ring-primary/20 rounded-2xl p-4 text-lg resize-none"
                 />
               </div>
 
               {/* Tags Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tags</label>
-                <div className="flex flex-wrap gap-2 mb-2">
+              <div className="space-y-4">
+                <label className="text-sm font-bold text-foreground/80 tracking-wide uppercase">Tags</label>
+                <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-muted/30 rounded-xl border border-dashed border-border">
                   {tags.map((tag, index) => (
-                    <div key={index} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                      <span>#{tag}</span>
-                      <button type="button" onClick={() => removeTag(tag)} className="hover:text-blue-900">
-                        <X size={14} />
+                    <div key={index} className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full border border-primary/20 group animate-in fade-in zoom-in duration-200">
+                      <span className="font-bold text-sm">#{tag}</span>
+                      <button type="button" onClick={() => removeTag(tag)} className="text-primary/60 hover:text-primary transition-colors">
+                        <X size={16} />
                       </button>
                     </div>
                   ))}
+                  {tags.length === 0 && (
+                    <span className="text-sm text-muted-foreground/60 italic px-2 self-center">No tags added yet</span>
+                  )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Input
-                    placeholder="Add some relevant hashtags"
+                    placeholder="Type tag and press Enter..."
                     value={tagInput}
                     onChange={handleTagInput}
                     onKeyDown={(e) => {
@@ -134,24 +135,27 @@ const EditPost = () => {
                         addTag(e);
                       }
                     }}
-                    className="flex-1"
+                    className="flex-1 bg-muted border-border text-foreground rounded-xl h-12"
                   />
-                  <Button type="button" onClick={addTag} variant="outline">
+                  <Button type="button" onClick={addTag} variant="outline" className="h-12 px-6 rounded-xl border-border hover:bg-muted font-bold transition-all">
                     Add Tag
                   </Button>
                 </div>
-                <p className="text-sm text-gray-500">Press Enter or click Add Tag to add a tag. Maximum 5 tags allowed.</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5 px-1">
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                  Maximum 5 tags allowed.
+                </p>
               </div>
 
               {/* Submit Button */}
-              <div className="pt-4">
-                <Button type="submit" className="w-full">Update</Button>
+              <div className="pt-6 border-t border-border">
+                <Button type="submit" className="w-full bg-primary text-primary-foreground font-black text-lg rounded-2xl py-8 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-lg shadow-primary/20">Update Post</Button>
               </div>
             </form>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
+import api from '@/lib/axios';
 import { useNavigate } from 'react-router-dom';
 
 const ForgotPassword = () => {
@@ -13,7 +13,7 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       toast({ title: "Please enter a valid email", variant: "destructive" });
       return;
@@ -21,8 +21,8 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/forgot-password`, { email });
-      
+      const response = await api.post('/user/forgot-password', { email });
+
       if (response.status === 200) {
         toast({ title: "Password reset link sent to your email", variant: "success" });
         navigate("/reset-password");
@@ -35,32 +35,32 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6 transition-colors duration-300">
+      <Card className="w-full max-w-md bg-card text-card-foreground border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Forgot Password</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl font-bold text-center text-foreground">Forgot Password</CardTitle>
+          <CardDescription className="text-center text-muted-foreground">
             Enter your email to receive a password reset link.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <input
                 type="email"
                 name="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-muted text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 required
               />
             </div>
 
             <button
               type="submit"
-              className={`w-full py-2 rounded-lg transition-colors ${email.trim() ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
+              className={`w-full py-2 rounded-xl transition-all font-bold shadow-md active:scale-[0.98] ${email.trim() ? 'bg-primary text-primary-foreground hover:opacity-90' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
               disabled={!email.trim() || loading}
             >
               {loading ? "Sending..." : "Send Reset Link"}
@@ -70,7 +70,7 @@ const ForgotPassword = () => {
               <button
                 type="button"
                 onClick={() => navigate("/sign-in")}
-                className="text-sm text-blue-700 hover:text-blue-900"
+                className="text-sm text-primary hover:underline font-medium"
               >
                 Back to Sign In
               </button>

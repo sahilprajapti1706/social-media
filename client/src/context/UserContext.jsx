@@ -1,5 +1,5 @@
 import { toast } from '@/hooks/use-toast';
-import axios from 'axios';
+import api from '@/lib/axios';
 import React, { createContext, useEffect, useState } from 'react';
 
 export const UserContext = createContext();
@@ -9,87 +9,100 @@ export const UserProvider = ({ children }) => {
     const [profile, setProfile] = useState(null);
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const token = localStorage.getItem("token");
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    const [searchQuery, setSearchQuery] = useState("");
 
     const getUserProfile = async () => {
-        // if (!token || userData) return; // Prevent unnecessary fetch
-        
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setLoading(false);
+            setIsInitialized(true);
+            return;
+        }
 
         try {
-            if (!token) return;
-            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/my-profile`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            // console.log(response)
+            const response = await api.get('/user/my-profile');
 
-           
-            
-            if(response.status === 200){
+            if (response.status === 200) {
                 setUserData(response.data);
                 setProfile(response.data.user);
             }
 
         } catch (error) {
-            // console.log(error)
+            console.error("Error fetching user profile:", error);
 
-            if(error.response.status === 401){
+            if (error.response?.status === 401) {
                 localStorage.removeItem("token");
                 toast({
                     title: "Session Expired!",
-                    variant: "default"
+                    description: "Please login again.",
+                    variant: "destructive"
                 });
                 setUserData(null);
                 setProfile(null);
-                window.location.href = "/";
+            } else {
+                toast({
+                    title: "Error fetching user",
+                    description: error.response?.data?.message || "User Not Found",
+                    variant: "destructive"
+                });
             }
-
-            toast({
-                title: "Error fetching user",
-                description: error.response?.data?.message || "User Not Found",
-                variant: "destructive"
-            });
-            setUserData(null);
-            setProfile(null);
         }
     };
 
     const fetchAllPost = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/post`);
-            setPosts(response.data);
+            const response = await api.get('/post');
+            if (response.status === 200) {
+                setPosts(response.data);
+            }
         } catch (error) {
-            toast({
-                title: "Error fetching posts",
-                description: error.response?.data?.message || "Failed to fetch posts",
-                variant: "destructive"
-            });
+            console.error("Error fetching posts:", error);
+            // Error already handled by interceptor
         }
     };
 
-    useEffect(() => {
-        if (token && !userData) {
-            setLoading(true);
-            Promise.all([getUserProfile(), fetchAllPost()]).finally(() => setLoading(false));
-        }
-    }, [token]);  // Removed `profile` to prevent unnecessary calls
+    const filteredPosts = posts.filter(post =>
+        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.author.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+    );
 
+    // Initialize user profile on mount only once
     useEffect(() => {
-        if (userData) {
-            setProfile(userData.user);
+        const initializeUser = async () => {
+            setLoading(true);
+            const token = localStorage.getItem("token");
+
+            if (token) {
+                await Promise.all([getUserProfile(), fetchAllPost()]);
+            } else {
+                await fetchAllPost();
+            }
+
+            setLoading(false);
+            setIsInitialized(true);
+        };
+
+        if (!isInitialized) {
+            initializeUser();
         }
-    }, [userData]);
+    }, [isInitialized]);
 
     return (
-        <UserContext.Provider value={{ 
-            token, 
-            userData, 
-            setUserData, 
-            profile, 
-            setProfile, 
-            posts, 
+        <UserContext.Provider value={{
+            userData,
+            setUserData,
+            profile,
+            setProfile,
+            posts,
             getUserProfile,
-            fetchAllPost, 
-            loading
+            fetchAllPost,
+            loading,
+            searchQuery,
+            setSearchQuery,
+            filteredPosts
         }}>
             {children}
         </UserContext.Provider>

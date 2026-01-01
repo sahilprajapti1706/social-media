@@ -8,89 +8,82 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 const UserDetails = () => {
-  const { userData, profile, setUserData } = useContext(UserContext);
+  const { profile, posts } = useContext(UserContext);
   const navigate = useNavigate();
-  // console.log(userData)
 
-  
+  const trendingTags = Array.from(
+    new Set(posts?.flatMap(post => post.tags || []))
+  ).slice(0, 8);
 
   return (
-    <div className="w-full lg:w-3/12 px-4 hidden lg:block">
-      <Card className="sticky top-[90px]">
-        <CardHeader>
-          <div className="flex flex-col items-center space-x-4 mb-4">
-            <Avatar className="h-20 w-20 mb-4 ">
-              <img 
-                src={profile?.profileImage || "./user.png"} 
-                alt={profile?.username || "Profile"}
-                className="h-20 w-20 rounded-full"
-              />
-            </Avatar>
-            <div>
-              <CardTitle>@{profile?.username || "User"}</CardTitle>
-            </div>
+    <Card className="border-none shadow-sm rounded-2xl overflow-visible bg-card text-card-foreground">
+      <CardHeader className="bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-background pb-6">
+        <div className="flex flex-col items-center space-x-4 mb-4">
+          <Avatar className="h-20 w-20 mb-4 border-4 border-white dark:border-gray-800 shadow-sm">
+            <img
+              src={profile?.profileImage || "./user.png"}
+              alt={profile?.username || "Profile"}
+              className="h-20 w-20 rounded-full object-cover"
+            />
+          </Avatar>
+          <div className="text-center">
+            <CardTitle className="text-xl font-bold text-foreground leading-tight">@{profile?.username || "User"}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Member since 2024</p>
           </div>
+        </div>
 
-          <div className="flex justify-around mx-3">
-            <CardTitle className="flex flex-col justify-center items-center">
-              <h2 className="text-gray-600 text-base">Followers</h2>
-              <h2>{profile?.followers?.length || 0}</h2>
-            </CardTitle>
-            <Separator orientation="vertical" className="h-10 mx-3 bg-gray-500" />
-            <CardTitle className="flex flex-col justify-center items-center">
-              <h2 className="text-gray-600 text-base">Following</h2>
-              <h2>{profile?.following?.length || 0}</h2>
-            </CardTitle>
+        <div className="flex justify-around items-center border-t border-border pt-6">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{profile?.followers?.length || 0}</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Followers</p>
           </div>
-        </CardHeader>
-
-        <Separator className="w-[70%] mx-auto mb-3" />
-        <CardContent>
-          <div className="space-y-2">
-          <Link to="/home" className="flex items-center space-x-3">
-              <HomeIcon size={25} />
-              <span>Home</span>
-            </Link>
-            <Separator className="w-[80%] mx-auto mb-3" />
-            <Link to="/profile" className="flex items-center space-x-3">
-              <User size={25} />
-              <span>My Profile</span>
-            </Link>
-            <Separator className="w-[80%] mx-auto mb-3" />
-            
-            <Link to="/friends" className="flex items-center space-x-3">
-              <Users size={25} />
-              <span>Friends</span>
-            </Link>
-            <Separator className="w-[80%] mx-auto mb-3" />
-
-            <Link to="/my-post" className="flex items-center space-x-3">
-              <BookOpen size={25} />
-              <span>My Posts</span>
-            </Link>
-            <Separator className="w-[80%] mx-auto mb-3" />
-
-            <Link to="/create-post" className="flex items-center space-x-3">
-              <SquarePen size={25} />
-              <span>Create Post</span>
-            </Link>
-            <Separator className="w-[80%] mx-auto mb-3" />
-
-            <Link to="/my-liked-posts" className="flex items-center space-x-3">
-              <ThumbsUp size={25} />
-              <span>Liked Posts</span>
-            </Link>
-            <Separator className="w-[80%] mx-auto mb-3" />
-
-            <Link to="/my-comment-posts" className="flex items-center space-x-3">
-              <MessageCircle size={25} />
-              <span>My Comments</span>
-            </Link>
-            <Separator className="w-[80%] mx-auto mb-3" />
+          <div className="h-8 w-px bg-border"></div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{profile?.following?.length || 0}</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Following</p>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-4 space-y-6">
+        <nav className="space-y-1">
+          <Link to="/home" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted hover:text-primary transition-all group">
+            <HomeIcon size={20} className="text-muted-foreground group-hover:text-primary" />
+            <span className="font-medium">Home Feed</span>
+          </Link>
+
+          <Link to="/profile" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted hover:text-primary transition-all group">
+            <User size={20} className="text-muted-foreground group-hover:text-primary" />
+            <span className="font-medium">My Profile</span>
+          </Link>
+
+          <Link to="/friends" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted hover:text-primary transition-all group">
+            <Users size={20} className="text-muted-foreground group-hover:text-primary" />
+            <span className="font-medium">Friends</span>
+          </Link>
+
+          <Link to="/my-post" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted hover:text-primary transition-all group">
+            <BookOpen size={20} className="text-muted-foreground group-hover:text-primary" />
+            <span className="font-medium">My Posts</span>
+          </Link>
+
+          <Link to="/create-post" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted hover:text-primary transition-all group">
+            <SquarePen size={20} className="text-muted-foreground group-hover:text-primary" />
+            <span className="font-medium">Create Post</span>
+          </Link>
+
+          <Link to="/my-liked-posts" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted hover:text-primary transition-all group">
+            <ThumbsUp size={20} className="text-muted-foreground group-hover:text-primary" />
+            <span className="font-medium">Liked Posts</span>
+          </Link>
+
+          <Link to="/my-comment-posts" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted hover:text-primary transition-all group">
+            <MessageCircle size={20} className="text-muted-foreground group-hover:text-primary" />
+            <span className="font-medium">My Comments</span>
+          </Link>
+        </nav>
+      </CardContent>
+    </Card>
   );
 };
 

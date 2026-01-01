@@ -7,10 +7,24 @@ const cors = require("cors");
 const connectToDB = require("./config/db");
 const userRoutes = require("./routes/user.routes");
 const postRoutes = require("./routes/post.routes");
+const cron = require("node-cron");
+const mongoose = require("mongoose");
 
 const app = express();
 connectToDB();
 connectCloudinary();
+
+// Cron job to keep MongoDB cluster alive (runs every 5 minutes)
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.db.admin().ping();
+      console.log('MongoDB cluster pinged successfully at', new Date().toISOString());
+    }
+  } catch (error) {
+    console.error('Error pinging MongoDB cluster:', error.message);
+  }
+});
 
 
 const PORT = process.env.PORT || 3000;
@@ -21,7 +35,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 
-app.use(cors());
+// CORS Configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 
 // Routes
 app.use("/user", userRoutes);

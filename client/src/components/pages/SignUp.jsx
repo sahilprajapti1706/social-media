@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, User, Image as ImageIcon } from 'lucide-react';
-import axios from "axios";
+import api from "@/lib/axios";
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,7 +35,24 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+
+    if (formData.username.length < 5) {
+      toast({
+        title: "Username too short",
+        description: "Username must be at least 5 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const formDataToSend = new FormData();
@@ -46,7 +63,7 @@ const SignUp = () => {
         formDataToSend.append("profileImage", formData.profileImage);
       }
 
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/register`, formDataToSend, {
+      const response = await api.post('/user/register', formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
@@ -55,81 +72,89 @@ const SignUp = () => {
         navigate("/sign-in");
       }
     } catch (error) {
+      console.error("Sign up error:", error);
       toast({
         title: "Error",
         description: error.response?.data?.message || "Something went wrong. Please try again.",
-        status: "error",
+        variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-8 transition-colors duration-300">
+      <Card className="w-full max-w-md bg-card text-card-foreground border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl font-bold text-center text-foreground">Create Account</CardTitle>
+          <CardDescription className="text-center text-muted-foreground">
             Enter your credentials and upload a profile picture.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Profile Image Uploed */}
+            {/* Profile Image Upload */}
             <div className='flex flex-col justify-center items-center'>
-            <label htmlFor="profileImage">
-          <img
-            className="w-20 h-20 rounded-full self-center object-fill"
-            src={!previewImage ? "./upload_area.png" : previewImage}
-            alt=""
-          />
-          <input
-            type="file"
-            id="profileImage"
-            onChange={handleImageChange}
-            hidden
-          />
-        </label>
+              <label htmlFor="profileImage" className="cursor-pointer group relative">
+                <div className="w-24 h-24 rounded-full border-4 border-muted overflow-hidden flex items-center justify-center bg-muted transition-all group-hover:border-primary">
+                  <img
+                    className="w-full h-full object-cover"
+                    src={!previewImage ? "./upload_area.png" : previewImage}
+                    alt="Profile Preview"
+                  />
+                  {!previewImage && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ImageIcon className="text-white h-8 w-8" />
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  id="profileImage"
+                  onChange={handleImageChange}
+                  hidden
+                />
+              </label>
             </div>
-          
-              
+
+
             {/* Username Input */}
             <div className="relative">
-              <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
                 name="username"
                 placeholder="Username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-muted text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 required
               />
             </div>
 
             {/* Email Input */}
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <input
                 type="email"
                 name="email"
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-muted text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 required
               />
             </div>
 
             {/* Password Input */}
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <input
                 type="password"
                 name="password"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-muted text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 required
               />
             </div>
@@ -137,15 +162,15 @@ const SignUp = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full bg-primary text-primary-foreground py-2 rounded-xl hover:opacity-90 transition-all font-bold shadow-md active:scale-[0.98]"
             >
               Sign Up
             </button>
 
             {/* Already have an account? */}
             <div className="text-center mt-4">
-              <Link to={"/sign-in"} className="text-sm text-gray-600 hover:text-gray-800">
-                <p>Already have an account? <span className='text-blue-700'>Sign in</span></p>
+              <Link to={"/sign-in"} className="text-sm text-muted-foreground hover:text-foreground group">
+                <p>Already have an account? <span className='text-primary font-bold group-hover:underline'>Sign in</span></p>
               </Link>
             </div>
           </form>

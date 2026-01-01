@@ -1,55 +1,43 @@
 import { UserContext } from "@/context/UserContext";
 import { useContext, useEffect, useState } from "react";
 import Feed from "../Feed";
-import Suggestion from "../Suggestion";
-import UserDetails from "../UserDetails";
 import Loading from "../Loading";
+import MainLayout from "../MainLayout";
 
 const HomePage = () => {
   const token = localStorage.getItem("token");
-  const { profile, getUserProfile, userData, fetchAllPost } = useContext(UserContext);
+  const { profile, getUserProfile, posts, fetchAllPost } = useContext(UserContext);
   const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   if (profile !== undefined) {
-  //     setLoading(false);
-  //   }
-  // }, [profile,token]);
-
-  // useEffect(() => {
-  //   getUserProfile();
-  // }, [token, profile])
-
   useEffect(() => {
-    if (!profile && token) {  // Fetch only if profile is missing
+    if (!profile && token) {
       getUserProfile().finally(() => setLoading(false));
     } else {
-      setLoading(false); // Stop loading if profile exists
+      setLoading(false);
     }
-  }, [token]);  // Removed profile from dependencies
+  }, [token]);
 
-  useEffect(()=> {
+  useEffect(() => {
     fetchAllPost();
-  },[])
+  }, [])
+
+  // Extract trending tags
+  const trendingTags = Array.from(
+    new Set(posts.flatMap(post => post.tags || []))
+  ).slice(0, 8);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Loading />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-wrap justify-center gap-6">
-          {profile && <UserDetails />}
-          <Feed />
-          {profile && <Suggestion />}
-        </div>
-      </div>
-    </div>
+    <MainLayout>
+      <Feed />
+    </MainLayout>
   );
 };
 

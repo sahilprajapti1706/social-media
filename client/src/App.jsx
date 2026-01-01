@@ -17,33 +17,35 @@ import Friends from './components/pages/Friend'
 import ForgotPassword from './components/pages/ForgetPassword'
 import ResetPassword from './components/pages/ResetPassword'
 import GetStarted from './components/pages/GetStarted'
+import PostDetails from './components/pages/PostDetails'
 
 const App = () => {
 
   const { profile } = useContext(UserContext)
-  
+
   return (
     <div>
-     
-          <Navbar/>
-          <Routes>
-                
-                <Route path='/' element={<GetStarted/>} />
-                <Route path='/sign-up' element={<SignUp/>} />
-                <Route path='/sign-in' element={<SignIn/>} />
-                <Route path="/home" element={<HomePage/>} />
-                <Route path='/create-post' element={<CreatePost/>}/>
-                <Route path='/edit/:id' element={<EditPost/>}/>
-                <Route path='/my-post' element={<MyPost/>}/>
-                <Route path='/my-liked-posts' element={<MyLikedPost/>}/>
-                <Route path='/my-comment-posts' element={<MyCommentPost/>}/>
-                <Route path='/friends' element={<Friends/>}/>
-                <Route path='/profile' element={<MyProfile/>}/>
-                <Route path='/forgot-password' element={<ForgotPassword/>}/>
-                <Route path='/reset-password' element={<ResetPassword/>}/>
-          </Routes>
-          <Toaster />
-    
+
+      <Navbar />
+      <Routes>
+
+        <Route path='/' element={<GetStarted />} />
+        <Route path='/sign-up' element={<SignUp />} />
+        <Route path='/sign-in' element={<SignIn />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path='/post/:id' element={<PostDetails />} />
+        <Route path='/create-post' element={<CreatePost />} />
+        <Route path='/edit/:id' element={<EditPost />} />
+        <Route path='/my-post' element={<MyPost />} />
+        <Route path='/my-liked-posts' element={<MyLikedPost />} />
+        <Route path='/my-comment-posts' element={<MyCommentPost />} />
+        <Route path='/friends' element={<Friends />} />
+        <Route path='/profile' element={<MyProfile />} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
+      </Routes>
+      <Toaster />
+
     </div>
   )
 }

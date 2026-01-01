@@ -3,13 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Lock, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
+import api from '@/lib/axios';
 import { UserContext } from '@/context/UserContext';
 
 const SignIn = () => {
   const { setUserData, setProfile } = useContext(UserContext); // Corrected userData handling
   const [formData, setFormData] = useState({ username: '', password: '' });
-  
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -17,12 +17,15 @@ const SignIn = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/login`, formData);
+      const response = await api.post('/user/login', formData);
 
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
-        setUserData(response.data.user); // Corrected user update
-        setProfile(response.data.user); // Corrected user update
+
+        // Update context with user data
+        const userData = { user: response.data.user };
+        setUserData(userData);
+        setProfile(response.data.user);
 
         toast({
           title: response.data.message || "Login successful!",
@@ -33,6 +36,7 @@ const SignIn = () => {
         navigate("/home");
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login Failed",
         description: error.response?.data?.message || "Invalid credentials. Please try again.",
@@ -47,48 +51,48 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-6 transition-colors duration-300">
+      <Card className="w-full max-w-md bg-card text-card-foreground border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center text-foreground">Welcome Back</CardTitle>
+          <CardDescription className="text-center text-muted-foreground">Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            
+
             {/* Username Input */}
             <div className="relative">
-              <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
                 name="username"
                 placeholder="Username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-muted text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 required
               />
             </div>
 
             {/* Password Input */}
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <input
                 type="password"
                 name="password"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-muted text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 required
               />
             </div>
 
             {/* Forgot Password */}
             <div className="text-right">
-              <button 
-                type="button" 
-                className="text-sm text-blue-600 hover:text-blue-800"
+              <button
+                type="button"
+                className="text-sm text-primary hover:underline font-medium"
                 onClick={() => navigate("/forgot-password")}
               >
                 Forgot Password?
@@ -98,16 +102,16 @@ const SignIn = () => {
             {/* Sign In Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full bg-primary text-primary-foreground py-2 rounded-xl hover:opacity-90 transition-all font-bold shadow-md active:scale-[0.98]"
             >
               Sign In
             </button>
 
             {/* Sign Up Redirect */}
             <div className="text-center mt-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                <Link to="/sign-up" className="text-blue-700 font-medium">
+                <Link to="/sign-up" className="text-primary font-bold hover:underline">
                   Sign up
                 </Link>
               </p>

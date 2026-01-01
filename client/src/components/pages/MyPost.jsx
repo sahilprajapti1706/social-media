@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import PostCard from "../PostCard";
 import { UserContext } from "@/context/UserContext";
+import MainLayout from "../MainLayout";
 
 const MyPost = () => {
   const { posts, profile } = useContext(UserContext);
@@ -10,7 +11,7 @@ const MyPost = () => {
   useEffect(() => {
     if (Array.isArray(posts) && profile) {
       const filteredPosts = posts.filter(
-        (post) => post.author._id === profile._id
+        (post) => post.author._id === profile._id || post.author === profile._id
       );
       setMyPosts(filteredPosts);
       setLoading(false);
@@ -18,9 +19,13 @@ const MyPost = () => {
   }, [posts, profile]);
 
   return (
-    <div className="w-full mx-auto mt-6 lg:w-5/12 px-4 flex-1 max-w-3xl">
+    <MainLayout>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-foreground">My Posts</h2>
+        <p className="text-muted-foreground text-sm">Everything you've shared with the world.</p>
+      </div>
       {loading ? (
-        <p className="text-center text-gray-500">Loading your posts...</p>
+        <p className="text-center text-muted-foreground py-10 italic">Loading your posts...</p>
       ) : myPosts.length > 0 ? (
         <div className="space-y-4">
           {myPosts.map((post, idx) => (
@@ -28,9 +33,11 @@ const MyPost = () => {
           ))}
         </div>
       ) : (
-        <p className="text-center text-gray-500">No posts found.</p>
+        <div className="bg-card p-10 rounded-2xl border border-dashed border-border text-center">
+          <p className="text-muted-foreground italic">You haven't posted anything yet.</p>
+        </div>
       )}
-    </div>
+    </MainLayout>
   );
 };
 

@@ -22,6 +22,14 @@ module.exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    if (username.length < 5) {
+      return res.status(400).json({ message: "Username must be at least 5 characters long" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
     const isUserAlreadyWithEmail = await userModel.findOne({ email });
     if (isUserAlreadyWithEmail) {
       return res.status(400).json({ message: "User already exists with this email" });
@@ -31,7 +39,7 @@ module.exports.registerUser = async (req, res) => {
     if (isUsernameAlreadyTaken) {
       return res.status(400).json({ message: "Username unavailable" });
     }
-    console.log(req.file)
+
     if (req.file) {
       try {
         profileImageUrl = await new Promise((resolve, reject) => {
@@ -48,7 +56,6 @@ module.exports.registerUser = async (req, res) => {
           );
           uploadStream.end(req.file.buffer);
         });
-        console.log(profileImageUrl)
       } catch (uploadError) {
         console.error("Error uploading to Cloudinary:", uploadError);
       }
@@ -59,7 +66,7 @@ module.exports.registerUser = async (req, res) => {
     const newUser = new userModel({
       profileImage: profileImageUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png",
       email,
-      username,
+      username: username.toLowerCase(),
       password: hashedPassword,
     });
 
@@ -75,8 +82,13 @@ module.exports.loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    // Validation
     if (!username || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Username and password are required" });
+    }
+
+    if (username.trim() === '' || password.trim() === '') {
+      return res.status(400).json({ message: "Username and password cannot be empty" });
     }
 
     const user = await userModel.findOne({ username }).select("+password");
@@ -91,10 +103,18 @@ module.exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "6h" });
-    
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not defined in environment variables");
+      return res.status(500).json({ message: "Server configuration error" });
+    }
 
-    return res.status(200).json({ message: "Login successful", user, token });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "6h" });
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return res.status(200).json({ message: "Login successful", user: userResponse, token });
   } catch (error) {
     console.error("Error logging in user:", error);
     return res.status(500).json({ message: "Error logging in user", error: error.message });
@@ -104,10 +124,20 @@ module.exports.loginUser = async (req, res) => {
 module.exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+
+    if (!email || email.trim() === '') {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
     const user = await userModel.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "No account found with this email" });
+    }
+
+    if (!process.env.RESET_SECRET) {
+      console.error("RESET_SECRET is not defined in environment variables");
+      return res.status(500).json({ message: "Server configuration error" });
     }
 
     const resetToken = jwt.sign({ userId: user._id }, process.env.RESET_SECRET, { expiresIn: "1h" });
@@ -121,12 +151,12 @@ module.exports.forgotPassword = async (req, res) => {
     await transporter.sendMail({
       to: email,
       subject: "Password Reset Request",
-      html: `Click <a href="${resetLink}">here</a> to reset your password.`,
+      html: `Click <a href="${resetLink}">here</a> to reset your password. This link will expire in 1 hour.`,
     });
 
     return res.json({ message: "Reset link sent to email" });
   } catch (error) {
-    console.error("Error in forgetPassword:", error);
+    console.error("Error in forgotPassword:", error);
     return res.status(500).json({ message: "Error sending reset email", error: error.message });
   }
 };
@@ -135,8 +165,24 @@ module.exports.resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 
-    const decoded = jwt.verify(token, process.env.RESET_SECRET);
-    console.log(decoded)
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.RESET_SECRET);
+    } catch (jwtError) {
+      if (jwtError.name === "TokenExpiredError") {
+        return res.status(400).json({ message: "Reset token has expired. Please request a new one." });
+      }
+      return res.status(400).json({ message: "Invalid reset token" });
+    }
+
     const user = await userModel.findOne({
       _id: decoded.userId,
       resetToken: token,
@@ -155,13 +201,13 @@ module.exports.resetPassword = async (req, res) => {
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
     console.error("Error in resetPassword:", error);
-    return res.status(400).json({ message: "Error resetting password", error: error.message });
+    return res.status(500).json({ message: "Error resetting password", error: error.message });
   }
 };
 
 module.exports.getProfile = async (req, res) => {
   try {
-    
+
     return res.status(200).json({
       message: "Welcome to your profile",
       user: req.user,
@@ -258,4 +304,3 @@ module.exports.friends = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
- 

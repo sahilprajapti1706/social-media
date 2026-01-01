@@ -3,7 +3,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import axios from "axios";
+import api from "@/lib/axios";
 import { toast } from "@/hooks/use-toast";
 import { UserContext } from "@/context/UserContext";
 
@@ -18,12 +18,8 @@ const Suggestion = () => {
     const fetchUsersAndFollowing = async () => {
       try {
         const [usersRes, followingRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_BASE_URL}/user/get-users`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${import.meta.env.VITE_BASE_URL}/user/friends`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          api.get('/user/get-users'),
+          api.get('/user/friends'),
         ]);
 
         if (usersRes.status === 200) {
@@ -55,10 +51,9 @@ const Suggestion = () => {
 
   const handleConnection = async (id) => {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/user/connection/${id}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.post(
+        `/user/connection/${id}`,
+        {}
       );
 
       if (response.status === 200) {
@@ -72,55 +67,69 @@ const Suggestion = () => {
   };
 
   return (
-    <div className="w-full lg:w-3/12 px-4 hidden xl:block">
-      <Card className="sticky top-24">
-        <CardHeader>
-          <CardTitle>Suggested Connections</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-gray-500">Loading suggestions...</p>
-          ) : userSuggestion.length === 0 ? (
-            <p className="text-gray-500">No suggestions available.</p>
-          ) : (
-            <div className="space-y-3">
-              {userSuggestion.map((suggestion, idx) => (
-                <div key={suggestion._id}>
-                  <div className="flex items-center justify-between py-1">
-                    {/* Avatar and Username */}
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <img
-                          src={suggestion.profileImage || "./user.png"}
-                          alt={suggestion.username}
-                          className="h-8 w-8 rounded-full"
-                        />
-                      </Avatar>
-                      <p className="font-medium text-sm">@{suggestion.username}</p>
+    <Card className="sticky top-[100px] border-none shadow-sm rounded-2xl overflow-hidden bg-card text-card-foreground">
+      <CardHeader className="pb-3 border-b border-border">
+        <CardTitle className="text-lg font-bold text-foreground">Suggested For You</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
+        {loading ? (
+          <div className="space-y-4 py-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-center space-x-3 animate-pulse">
+                <div className="h-10 w-10 bg-muted rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
+                  <div className="h-2 bg-muted/50 rounded w-1/3"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : userSuggestion.length === 0 ? (
+          <div className="text-center py-6">
+            <p className="text-muted-foreground text-sm italic">No new suggestions</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {userSuggestion.slice(0, 5).map((suggestion, idx) => (
+              <div key={suggestion._id} className="group">
+                <div className="flex items-center justify-between">
+                  {/* Avatar and Username */}
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-10 w-10 border border-border">
+                      <img
+                        src={suggestion.profileImage || "./user.png"}
+                        alt={suggestion.username}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">@{suggestion.username}</p>
+                      <p className="text-xs text-muted-foreground">Popular</p>
                     </div>
-
-                    {/* Follow Button */}
-                    <Button
-                      className={`px-2 py-0 text-sm rounded-lg transition ${
-                        following[suggestion._id]
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          : "bg-blue-500 text-white hover:bg-blue-600"
-                      }`}
-                      onClick={() => handleConnection(suggestion._id)}
-                      disabled={following[suggestion._id]}
-                    >
-                      {following[suggestion._id] ? "Following" : "Follow"}
-                    </Button>
                   </div>
 
-                  {idx < userSuggestion.length - 1 && <Separator />}
+                  {/* Follow Button */}
+                  <Button
+                    size="sm"
+                    className={`px-4 py-1 h-8 text-xs font-semibold rounded-full transition-all duration-300 ${following[suggestion._id]
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : "bg-primary text-primary-foreground hover:opacity-90 shadow-sm"
+                      }`}
+                    onClick={() => handleConnection(suggestion._id)}
+                    disabled={following[suggestion._id]}
+                  >
+                    {following[suggestion._id] ? "Following" : "Follow"}
+                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+              </div>
+            ))}
+            <button className="w-full mt-4 py-2 text-sm font-semibold text-primary hover:opacity-80 transition-colors">
+              View More
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

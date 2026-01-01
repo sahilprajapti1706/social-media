@@ -15,8 +15,18 @@ module.exports.authUser = async (req, res, next) => {
             return res.status(401).json({ message: "Unauthorized: Invalid token" });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // console.log("Decoded Token:", decoded);
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (jwtError) {
+            if (jwtError.name === "TokenExpiredError") {
+                return res.status(401).json({ message: "Session expired. Please log in again." });
+            }
+            if (jwtError.name === "JsonWebTokenError") {
+                return res.status(401).json({ message: "Invalid token. Please authenticate again." });
+            }
+            throw jwtError;
+        }
 
         const user = await userModel.findById(decoded.userId);
         if (!user) {
@@ -26,29 +36,27 @@ module.exports.authUser = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        console.log("JWT Error:", error);
-
-        if (error.name === "TokenExpiredError") {
-            return res.status(401).json({ message: "Session expired. Please log in again." });
-        }
-        if (error.name === "JsonWebTokenError") {
-            return res.status(401).json({ message: "Invalid token. Please authenticate again." });
-        }
-
-        return res.status(401).json({ message: "Unauthorized access." });
+        console.error("Auth Middleware Error:", error);
+        return res.status(500).json({ message: "Internal server error during authentication." });
     }
 };
 
 module.exports.isAuthor = async (req, res, next) => {
     try {
         const post = await postModel.findById(req.params.id);
-        if(req.user._id.toString() !== post.author.toString()){
-            return res.status(401).json({message: 'Unauthorized : Only author can edit the post'});
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
         }
+
+        if (req.user._id.toString() !== post.author.toString()) {
+            return res.status(403).json({ message: 'Forbidden: Only author can edit the post' });
+        }
+
         next();
     } catch (error) {
-
-        return res.status(401).json({message: 'Unauthorized', error});
+        console.error("isAuthor Middleware Error:", error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 }
 

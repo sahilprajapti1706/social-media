@@ -6,9 +6,9 @@ const postController = require("../controllers/post.controller")
 
 router.get("/", postController.feed)
 
-router.post("/create-post", authMiddleware.authUser , postController.createPost)
+router.post("/create-post", authMiddleware.authUser, postController.createPost)
 
-router.get("/get-post/:id", authMiddleware.authUser , postController.getPost)
+router.get("/get-post/:id", postController.getPost)
 
 router.put("/update/:id", authMiddleware.authUser, authMiddleware.isAuthor, postController.updatePost);
 

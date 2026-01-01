@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import PostCard from "../PostCard";
 import { UserContext } from "@/context/UserContext";
-import axios from "axios";
-import UserDetails from "../UserDetails";
+import api from "@/lib/axios";
+import MainLayout from "../MainLayout";
 
 const MyLikedPost = () => {
   const { profile } = useContext(UserContext);
@@ -11,14 +11,7 @@ const MyLikedPost = () => {
 
   const getUserLikedPost = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/post/liked-posts`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await api.get('/post/liked-posts');
 
       if (response.status === 200) {
         setMyLikedPosts(response.data.likedPosts);
@@ -32,29 +25,28 @@ const MyLikedPost = () => {
 
   useEffect(() => {
     getUserLikedPost();
-  }, []); // Removed unnecessary dependencies
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-wrap justify-center gap-6">
-          {profile && <UserDetails />}
-          <div className="w-full lg:w-5/12 px-4 flex-1 max-w-3xl">
-            {loading ? (
-              <p className="text-center text-gray-500">Loading posts...</p>
-            ) : myLikedPosts.length > 0 ? (
-              <div className="space-y-4">
-                {myLikedPosts.map((post, idx) => (
-                  <PostCard key={post._id || idx} post={post} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">No liked posts found.</p>
-            )}
-          </div>
-        </div>
+    <MainLayout>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-foreground">Liked Posts</h2>
+        <p className="text-muted-foreground text-sm">Posts that caught your eye.</p>
       </div>
-    </div>
+      {loading ? (
+        <p className="text-center text-muted-foreground py-10 italic">Loading liked posts...</p>
+      ) : myLikedPosts.length > 0 ? (
+        <div className="space-y-4">
+          {myLikedPosts.map((post, idx) => (
+            <PostCard key={post._id || idx} post={post} />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-card p-10 rounded-2xl border border-dashed border-border text-center">
+          <p className="text-muted-foreground italic">You haven't liked any posts yet.</p>
+        </div>
+      )}
+    </MainLayout>
   );
 };
 
